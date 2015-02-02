@@ -11,20 +11,9 @@ import (
 	"github.com/awslabs/aws-sdk-go/gen/endpoints"
 )
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"net/url"
-	"strconv"
-	"strings"
-)
-
 // ElasticTranscoder is a client for Amazon Elastic Transcoder.
 type ElasticTranscoder struct {
-	client *aws.RestClient
+	client *aws.JSONClient
 }
 
 // New returns a new ElasticTranscoder client.
@@ -36,15 +25,15 @@ func New(creds aws.CredentialsProvider, region string, client *http.Client) *Ela
 	endpoint, service, region := endpoints.Lookup("elastictranscoder", region)
 
 	return &ElasticTranscoder{
-		client: &aws.RestClient{
+		client: &aws.JSONClient{
 			Context: aws.Context{
 				Credentials: creds,
 				Service:     service,
 				Region:      region,
-			},
-			Client:     client,
-			Endpoint:   endpoint,
-			APIVersion: "2012-09-25",
+			}, Client: client,
+			Endpoint:     endpoint,
+			JSONVersion:  "",
+			TargetPrefix: "",
 		},
 	}
 }
@@ -55,44 +44,7 @@ func New(creds aws.CredentialsProvider, region string, client *http.Client) *Ela
 // use UpdatePipelineStatus to temporarily pause the pipeline.
 func (c *ElasticTranscoder) CancelJob(req *CancelJobRequest) (resp *CancelJobResponse, err error) {
 	resp = &CancelJobResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/jobs/{Id}"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("DELETE", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("CancelJob", "DELETE", "/2012-09-25/jobs/{Id}", req, resp)
 	return
 }
 
@@ -104,39 +56,7 @@ func (c *ElasticTranscoder) CancelJob(req *CancelJobRequest) (resp *CancelJobRes
 // to list the jobs (as opposed to the AWS Console).
 func (c *ElasticTranscoder) CreateJob(req *CreateJobRequest) (resp *CreateJobResponse, err error) {
 	resp = &CreateJobResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/jobs"
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("POST", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("CreateJob", "POST", "/2012-09-25/jobs", req, resp)
 	return
 }
 
@@ -144,39 +64,7 @@ func (c *ElasticTranscoder) CreateJob(req *CreateJobRequest) (resp *CreateJobRes
 // settings that you specify.
 func (c *ElasticTranscoder) CreatePipeline(req *CreatePipelineRequest) (resp *CreatePipelineResponse, err error) {
 	resp = &CreatePipelineResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/pipelines"
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("POST", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("CreatePipeline", "POST", "/2012-09-25/pipelines", req, resp)
 	return
 }
 
@@ -197,39 +85,7 @@ func (c *ElasticTranscoder) CreatePipeline(req *CreatePipelineRequest) (resp *Cr
 // services
 func (c *ElasticTranscoder) CreatePreset(req *CreatePresetRequest) (resp *CreatePresetResponse, err error) {
 	resp = &CreatePresetResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/presets"
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("POST", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("CreatePreset", "POST", "/2012-09-25/presets", req, resp)
 	return
 }
 
@@ -239,44 +95,7 @@ func (c *ElasticTranscoder) CreatePreset(req *CreatePresetRequest) (resp *Create
 // in use, DeletePipeline returns an error.
 func (c *ElasticTranscoder) DeletePipeline(req *DeletePipelineRequest) (resp *DeletePipelineResponse, err error) {
 	resp = &DeletePipelineResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/pipelines/{Id}"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("DELETE", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("DeletePipeline", "DELETE", "/2012-09-25/pipelines/{Id}", req, resp)
 	return
 }
 
@@ -285,44 +104,7 @@ func (c *ElasticTranscoder) DeletePipeline(req *DeletePipelineRequest) (resp *De
 // included with Elastic Transcoder.
 func (c *ElasticTranscoder) DeletePreset(req *DeletePresetRequest) (resp *DeletePresetResponse, err error) {
 	resp = &DeletePresetResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/presets/{Id}"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("DELETE", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("DeletePreset", "DELETE", "/2012-09-25/presets/{Id}", req, resp)
 	return
 }
 
@@ -332,52 +114,7 @@ func (c *ElasticTranscoder) DeletePreset(req *DeletePresetRequest) (resp *Delete
 // element for each job that satisfies the search criteria.
 func (c *ElasticTranscoder) ListJobsByPipeline(req *ListJobsByPipelineRequest) (resp *ListJobsByPipelineResponse, err error) {
 	resp = &ListJobsByPipelineResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/jobsByPipeline/{PipelineId}"
-
-	if req.PipelineID != nil {
-		uri = strings.Replace(uri, "{"+"PipelineId"+"}", aws.EscapePath(*req.PipelineID), -1)
-		uri = strings.Replace(uri, "{"+"PipelineId+"+"}", aws.EscapePath(*req.PipelineID), -1)
-	}
-
-	q := url.Values{}
-
-	if req.Ascending != nil {
-		q.Set("Ascending", *req.Ascending)
-	}
-
-	if req.PageToken != nil {
-		q.Set("PageToken", *req.PageToken)
-	}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("GET", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("ListJobsByPipeline", "GET", "/2012-09-25/jobsByPipeline/{PipelineId}", req, resp)
 	return
 }
 
@@ -386,52 +123,7 @@ func (c *ElasticTranscoder) ListJobsByPipeline(req *ListJobsByPipelineRequest) (
 // job that satisfies the search criteria.
 func (c *ElasticTranscoder) ListJobsByStatus(req *ListJobsByStatusRequest) (resp *ListJobsByStatusResponse, err error) {
 	resp = &ListJobsByStatusResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/jobsByStatus/{Status}"
-
-	if req.Status != nil {
-		uri = strings.Replace(uri, "{"+"Status"+"}", aws.EscapePath(*req.Status), -1)
-		uri = strings.Replace(uri, "{"+"Status+"+"}", aws.EscapePath(*req.Status), -1)
-	}
-
-	q := url.Values{}
-
-	if req.Ascending != nil {
-		q.Set("Ascending", *req.Ascending)
-	}
-
-	if req.PageToken != nil {
-		q.Set("PageToken", *req.PageToken)
-	}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("GET", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("ListJobsByStatus", "GET", "/2012-09-25/jobsByStatus/{Status}", req, resp)
 	return
 }
 
@@ -439,47 +131,7 @@ func (c *ElasticTranscoder) ListJobsByStatus(req *ListJobsByStatusRequest) (resp
 // associated with the current AWS account.
 func (c *ElasticTranscoder) ListPipelines(req *ListPipelinesRequest) (resp *ListPipelinesResponse, err error) {
 	resp = &ListPipelinesResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/pipelines"
-
-	q := url.Values{}
-
-	if req.Ascending != nil {
-		q.Set("Ascending", *req.Ascending)
-	}
-
-	if req.PageToken != nil {
-		q.Set("PageToken", *req.PageToken)
-	}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("GET", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("ListPipelines", "GET", "/2012-09-25/pipelines", req, resp)
 	return
 }
 
@@ -488,91 +140,14 @@ func (c *ElasticTranscoder) ListPipelines(req *ListPipelinesRequest) (resp *List
 // AWS region.
 func (c *ElasticTranscoder) ListPresets(req *ListPresetsRequest) (resp *ListPresetsResponse, err error) {
 	resp = &ListPresetsResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/presets"
-
-	q := url.Values{}
-
-	if req.Ascending != nil {
-		q.Set("Ascending", *req.Ascending)
-	}
-
-	if req.PageToken != nil {
-		q.Set("PageToken", *req.PageToken)
-	}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("GET", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("ListPresets", "GET", "/2012-09-25/presets", req, resp)
 	return
 }
 
 // ReadJob the ReadJob operation returns detailed information about a job.
 func (c *ElasticTranscoder) ReadJob(req *ReadJobRequest) (resp *ReadJobResponse, err error) {
 	resp = &ReadJobResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/jobs/{Id}"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("GET", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("ReadJob", "GET", "/2012-09-25/jobs/{Id}", req, resp)
 	return
 }
 
@@ -580,44 +155,7 @@ func (c *ElasticTranscoder) ReadJob(req *ReadJobRequest) (resp *ReadJobResponse,
 // a pipeline.
 func (c *ElasticTranscoder) ReadPipeline(req *ReadPipelineRequest) (resp *ReadPipelineResponse, err error) {
 	resp = &ReadPipelineResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/pipelines/{Id}"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("GET", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("ReadPipeline", "GET", "/2012-09-25/pipelines/{Id}", req, resp)
 	return
 }
 
@@ -625,44 +163,7 @@ func (c *ElasticTranscoder) ReadPipeline(req *ReadPipelineRequest) (resp *ReadPi
 // preset.
 func (c *ElasticTranscoder) ReadPreset(req *ReadPresetRequest) (resp *ReadPresetResponse, err error) {
 	resp = &ReadPresetResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/presets/{Id}"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("GET", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("ReadPreset", "GET", "/2012-09-25/presets/{Id}", req, resp)
 	return
 }
 
@@ -675,39 +176,7 @@ func (c *ElasticTranscoder) ReadPreset(req *ReadPresetRequest) (resp *ReadPreset
 // Amazon SNS topics that you specify.
 func (c *ElasticTranscoder) TestRole(req *TestRoleRequest) (resp *TestRoleResponse, err error) {
 	resp = &TestRoleResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/roleTests"
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("POST", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("TestRole", "POST", "/2012-09-25/roleTests", req, resp)
 	return
 }
 
@@ -718,44 +187,7 @@ func (c *ElasticTranscoder) TestRole(req *TestRoleRequest) (resp *TestRoleRespon
 // that you submit after you change settings.
 func (c *ElasticTranscoder) UpdatePipeline(req *UpdatePipelineRequest) (resp *UpdatePipelineResponse, err error) {
 	resp = &UpdatePipelineResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/pipelines/{Id}"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("PUT", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("UpdatePipeline", "PUT", "/2012-09-25/pipelines/{Id}", req, resp)
 	return
 }
 
@@ -766,44 +198,7 @@ func (c *ElasticTranscoder) UpdatePipeline(req *UpdatePipelineRequest) (resp *Up
 // the request.
 func (c *ElasticTranscoder) UpdatePipelineNotifications(req *UpdatePipelineNotificationsRequest) (resp *UpdatePipelineNotificationsResponse, err error) {
 	resp = &UpdatePipelineNotificationsResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/pipelines/{Id}/notifications"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("POST", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("UpdatePipelineNotifications", "POST", "/2012-09-25/pipelines/{Id}/notifications", req, resp)
 	return
 }
 
@@ -816,44 +211,7 @@ func (c *ElasticTranscoder) UpdatePipelineNotifications(req *UpdatePipelineNotif
 // the jobs that you want to cancel, and to send a CancelJob request.
 func (c *ElasticTranscoder) UpdatePipelineStatus(req *UpdatePipelineStatusRequest) (resp *UpdatePipelineStatusResponse, err error) {
 	resp = &UpdatePipelineStatusResponse{}
-
-	var body io.Reader
-	var contentType string
-
-	uri := c.client.Endpoint + "/2012-09-25/pipelines/{Id}/status"
-
-	if req.ID != nil {
-		uri = strings.Replace(uri, "{"+"Id"+"}", aws.EscapePath(*req.ID), -1)
-		uri = strings.Replace(uri, "{"+"Id+"+"}", aws.EscapePath(*req.ID), -1)
-	}
-
-	q := url.Values{}
-
-	if len(q) > 0 {
-		uri += "?" + q.Encode()
-	}
-
-	httpReq, err := http.NewRequest("POST", uri, body)
-	if err != nil {
-		return
-	}
-
-	if contentType != "" {
-		httpReq.Header.Set("Content-Type", contentType)
-	}
-
-	httpResp, err := c.client.Do(httpReq)
-	if err != nil {
-		return
-	}
-
-	defer httpResp.Body.Close()
-
-	if e := json.NewDecoder(httpResp.Body).Decode(resp); e != nil && e != io.EOF {
-		err = e
-		return
-	}
-
+	err = c.client.Do("UpdatePipelineStatus", "POST", "/2012-09-25/pipelines/{Id}/status", req, resp)
 	return
 }
 
@@ -1332,11 +690,3 @@ type VideoParameters struct {
 
 // avoid errors if the packages aren't referenced
 var _ time.Time
-
-var _ bytes.Reader
-var _ url.URL
-var _ fmt.Stringer
-var _ strings.Reader
-var _ strconv.NumError
-var _ = ioutil.Discard
-var _ json.RawMessage
